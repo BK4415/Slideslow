@@ -253,3 +253,55 @@ class SlidingEngine {
         }}));
     }
 }
+// Add to engine.js
+saveState() {
+    const state = {
+        size: this.size,
+        mode: this.mode,
+        style: this.isPhoto ? 'PHOTO' : 'NUMBER',
+        image: this.imageSrc,
+        moves: this.moves,
+        empty: this.emptyPos,
+        tiles: this.tiles.map(t => ({
+            id: t.id,
+            x: t.x,
+            y: t.y,
+            correctX: t.correctX,
+            correctY: t.correctY
+        })),
+        timer: document.getElementById('game-timer').innerText
+    };
+    localStorage.setItem('puzzle_save_game', JSON.stringify(state));
+}
+
+loadState() {
+    const saved = localStorage.getItem('puzzle_save_game');
+    if (!saved) return false;
+    
+    const data = JSON.parse(saved);
+    this.size = data.size;
+    this.mode = data.mode;
+    this.isPhoto = data.style === 'PHOTO';
+    this.imageSrc = data.image;
+    this.moves = data.moves;
+    this.emptyPos = data.empty;
+    
+    // Reconstruct Tiles
+    this.tiles = data.tiles.map(t => {
+        const el = this.createTileElement(t.id, {x: t.correctX, y: t.correctY});
+        return { ...t, el };
+    });
+    
+    this.renderFromLoaded();
+    return true;
+            }
+// Add to UI.js or Engine.js
+document.getElementById('photo-number-toggle').onclick = function() {
+    const tiles = document.querySelectorAll('.tile');
+    const isActive = tiles[0].classList.toggle('show-number');
+    
+    // Switch Icon state
+    this.style.color = isActive ? 'var(--accent)' : 'white';
+    
+    // Logic: The CSS .tile.show-number::after handles the visual display
+};
