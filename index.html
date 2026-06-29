@@ -2,64 +2,72 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Premium Sliding Puzzle</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wooden Slide - Premium Puzzle</title>
+    
+    <!-- PWA / Mobile Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a1a">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Loading Screen -->
+
+    <!-- 1. LOADING SCREEN (Never gets stuck) -->
     <div id="loading-screen" class="overlay active">
-        <div class="logo-placeholder"></div>
-        <h1 class="game-name">WOODEN SLIDE</h1>
-        <div class="loading-text">Loading...</div>
+        <div class="loading-content">
+            <div class="logo-placeholder"></div>
+            <h1 class="game-name">WOODEN SLIDE</h1>
+            <div class="loading-text-anim">Loading...</div>
+        </div>
     </div>
 
-    <!-- Mobile Frame -->
-    <div class="app-frame">
+    <!-- 2. MAIN APPLICATION FRAME (Centered Mobile Aspect) -->
+    <div class="app-frame" id="app-frame">
         
-        <!-- Left Panel: Info -->
-        <aside id="info-panel" class="side-panel left">
+        <!-- SIDE PANEL: INFORMATION (Left) -->
+        <aside id="panel-info" class="side-panel left">
             <div class="panel-header">
+                <div class="icon-ui small-icon">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/></svg>
+                </div>
                 <h2>Information</h2>
-                <button class="icon-btn close-panel-btn" data-panel="info-panel">
-                    <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
+                <button class="close-btn" onclick="UI.togglePanel('panel-info', false)">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
                 </button>
             </div>
-            <div class="panel-content">
-                <section>
-                    <h3>How to Play</h3>
-                    <p>Slide tiles into the empty space to arrange them in the correct order (1, 2, 3...). You can slide multiple tiles at once!</p>
-                </section>
-                <div class="menu-list">
-                    <a href="about.html" class="menu-item">About Game</a>
-                    <a href="guide.html" class="menu-item">Game Guide</a>
-                    <a href="privacy.html" class="menu-item">Privacy Policy</a>
-                    <a href="terms.html" class="menu-item">Terms & Conditions</a>
+            <div class="panel-content scrollable">
+                <nav class="panel-nav">
+                    <a href="guide.html">How To Play</a>
+                    <a href="about.html">About Game</a>
+                    <a href="privacy.html">Privacy Policy</a>
+                    <a href="terms.html">Terms & Conditions</a>
+                </nav>
+                <div class="credits">
+                    <p>Version 1.0.0</p>
+                    <p>Premium Wooden Slide Engine</p>
                 </div>
-                <div class="version-tag">Version 1.0.0</div>
             </div>
         </aside>
 
-        <!-- Right Panel: Dashboard -->
-        <aside id="dash-panel" class="side-panel right">
+        <!-- SIDE PANEL: DASHBOARD (Right) -->
+        <aside id="panel-dash" class="side-panel right">
             <div class="panel-header">
-                <button class="icon-btn close-panel-btn" data-panel="dash-panel">
-                    <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
+                <button class="close-btn" onclick="UI.togglePanel('panel-dash', false)">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/></svg>
                 </button>
                 <h2>Dashboard</h2>
+                <div class="icon-ui small-icon">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M13,3V9H21V3H13M13,21H21V11H13V21M3,21H11V15H3V21M3,13H11V3H3V13Z"/></svg>
+                </div>
             </div>
-            <div class="panel-content">
+            <div class="panel-content scrollable">
                 <div class="stats-grid">
-                    <div class="stat-card">
-                        <span class="stat-label">Best Time</span>
-                        <span id="stat-best-time" class="stat-value">--:--</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Games Played</span>
-                        <span id="stat-played" class="stat-value">0</span>
-                    </div>
+                    <div class="stat-card"><span class="label">Best Time</span><span id="dash-best-time">--:--</span></div>
+                    <div class="stat-card"><span class="label">Best Moves</span><span id="dash-best-moves">--</span></div>
+                    <div class="stat-card"><span class="label">Played</span><span id="dash-played">0</span></div>
+                    <div class="stat-card"><span class="label">Streak</span><span id="dash-streak">0</span></div>
                 </div>
                 <h3>Achievements</h3>
                 <div id="achievements-list" class="achievements-container">
@@ -68,119 +76,124 @@
             </div>
         </aside>
 
-        <!-- Main Home View -->
-        <main id="home-view" class="view active">
-            <nav class="top-nav">
-                <button class="icon-btn" id="open-info">
-                    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/></svg>
+        <!-- VIEW: HOME PAGE -->
+        <main id="view-home" class="view active">
+            <header class="home-nav">
+                <button class="icon-btn" id="btn-info" onclick="UI.togglePanel('panel-info', true)">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"/></svg>
                 </button>
-                <button class="icon-btn" id="open-dash">
-                    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M13,3V9H21V3H13M13,21H21V11H13V21M3,21H11V15H3V21M3,13H11V3H3V13Z"/></svg>
+                <button class="icon-btn" id="btn-dash" onclick="UI.togglePanel('panel-dash', true)">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M13,3V9H21V3H13M13,21H21V11H13V21M3,21H11V15H3V21M3,13H11V3H3V13Z"/></svg>
                 </button>
-            </nav>
-
-            <header class="home-header">
-                <div class="logo-placeholder small"></div>
-                <h1>WOODEN SLIDE</h1>
             </header>
 
-            <section class="live-preview-container">
-                <div id="preview-board" class="board-preview"></div>
-                
-                <div class="selector-row">
-                    <button class="prev-btn" data-type="style">◀</button>
-                    <div class="selector-label" id="current-style">NUMBER</div>
-                    <button class="next-btn" data-type="style">▶</button>
+            <div class="home-center">
+                <div class="game-logo-container">
+                    <div class="logo-placeholder"></div>
+                    <h1>WOODEN SLIDE</h1>
                 </div>
 
-                <div class="selector-row">
-                    <button class="prev-btn" data-type="size">◀</button>
-                    <div class="selector-label" id="current-size">4 × 4</div>
-                    <button class="next-btn" data-type="size">▶</button>
+                <!-- LIVE PREVIEW BOARD -->
+                <div id="preview-board" class="live-preview-board"></div>
+
+                <!-- STYLE SELECTOR -->
+                <div class="selector-container">
+                    <button class="select-arrow" onclick="UI.changeStyle(-1)">◀</button>
+                    <div class="select-label" id="label-style">NUMBER</div>
+                    <button class="select-arrow" onclick="UI.changeStyle(1)">▶</button>
                 </div>
 
-                <div class="selector-row" id="mode-selector-row">
-                    <button class="prev-btn" data-type="mode">◀</button>
-                    <div class="selector-label" id="current-mode">CLASSIC</div>
-                    <button class="next-btn" data-type="mode">▶</button>
+                <!-- SIZE SELECTOR -->
+                <div class="selector-container">
+                    <button class="select-arrow" onclick="UI.changeSize(-1)">◀</button>
+                    <div class="select-label" id="label-size">4 × 4</div>
+                    <button class="select-arrow" onclick="UI.changeSize(1)">▶</button>
                 </div>
-            </section>
 
-            <section class="home-footer">
-                <button id="play-btn" class="main-cta">
+                <!-- MODE SELECTOR -->
+                <div class="selector-container" id="mode-selector-wrap">
+                    <button class="select-arrow" onclick="UI.changeMode(-1)">◀</button>
+                    <div class="select-label" id="label-mode">CLASSIC</div>
+                    <button class="select-arrow" onclick="UI.changeMode(1)">▶</button>
+                </div>
+
+                <div id="upload-option" class="hidden">
+                    <button class="upload-btn" onclick="document.getElementById('file-input').click()">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/></svg>
+                        Upload Image
+                    </button>
+                    <input type="file" id="file-input" hidden accept="image/*">
+                </div>
+            </div>
+
+            <footer class="home-footer">
+                <button class="play-btn" id="btn-play">
                     <svg viewBox="0 0 24 24" width="32" height="32"><path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z"/></svg>
-                    PLAY NOW
+                    PLAY
                 </button>
                 
-                <div id="resume-section" class="resume-bar hidden">
-                    <button id="resume-btn">RESUME GAME</button>
-                    <div class="resume-info" id="resume-meta">Last: 4x4 Photo Classic</div>
+                <div id="resume-bar" class="resume-bar hidden">
+                    <div class="resume-content">
+                        <button id="btn-resume">RESUME GAME</button>
+                        <p id="resume-meta">Last: 4x4 Photo Classic</p>
+                    </div>
                 </div>
-            </section>
+            </footer>
         </main>
 
-        <!-- Game View -->
-        <main id="game-view" class="view">
-            <header class="game-hud">
-                <div class="hud-item">
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M15,11H13V5H15M19,11H17V5H19M11,11H9V5H11M7,11H5V5H7M15,19H13V13H15M19,19H17V13H19M11,19H9V13H11M7,19H5V13H7M21,1H3A2,2 0 0,0 1,3V21A2,2 0 0,0 3,23H21A2,2 0 0,0 23,21V3A2,2 0 0,0 21,1Z"/></svg>
-                    <span id="move-count">0</span>
+        <!-- VIEW: GAMEPLAY -->
+        <main id="view-game" class="view">
+            <nav class="game-hud">
+                <div class="hud-left">
+                    <div class="hud-stat">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M15,11H13V5H15M19,11H17V5H19M11,11H9V5H11M7,11H5V5H7M15,19H13V13H15M19,19H17V13H19M11,19H9V13H11M7,19H5V13H7M21,1H3A2,2 0 0,0 1,3V21A2,2 0 0,0 3,23H21A2,2 0 0,0 23,21V3A2,2 0 0,0 21,1Z"/></svg>
+                        <span id="game-moves">0</span>
+                    </div>
+                    <div class="hud-stat">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>
+                        <span id="game-timer">00:00</span>
+                    </div>
                 </div>
-                <div class="hud-item">
-                    <svg viewBox="0 0 24 24" width="18" height="18"><path fill="currentColor" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/></svg>
-                    <span id="game-timer">00:00</span>
+                <div class="hud-right">
+                    <div class="hud-size" id="hud-board-size">4x4</div>
+                    <button id="game-number-toggle" class="icon-btn sm hidden">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M13,6V18H11V6H13M9,18V15H6V18H9M15,9V6H18V9H15Z"/></svg>
+                    </button>
                 </div>
-                <button id="photo-number-toggle" class="icon-btn hidden">
-                    <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M13,6V18H11V6H13M9,18V15H6V18H9M15,9V6H18V9H15Z"/></svg>
-                </button>
-            </header>
+            </nav>
 
-            <div id="game-board-container" class="game-board"></div>
+            <div id="game-board-wrapper" class="game-board-area">
+                <!-- Engine injects board here -->
+            </div>
 
-            <footer class="game-controls">
-                <button class="icon-btn" id="shuffle-btn" title="Shuffle">
-                    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M14.83,13.41L13.42,14.82L16.59,18H15A5,5 0 0,1 10,13V11A3,3 0 0,0 7,8H2V10H7A1,1 0 0,1 8,11V13A5,5 0 0,0 13,18H15V21L19,17L15,13V16H16.59L14.83,13.41M19,7L15,3V6H13.41L11,8.41L12.41,9.83L14.83,7.41L15,7.59V11H17V7.59L18.59,6L15,6V7H19M2,14H7A3,3 0 0,0 10,11L8.59,9.58A1,1 0 0,1 7,10H2V12H7V14H2Z"/></svg>
+            <footer class="game-footer">
+                <button class="game-ctrl" id="btn-shuffle" title="Shuffle">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14.83,13.41L13.42,14.82L16.59,18H15A5,5 0 0,1 10,13V11A3,3 0 0,0 7,8H2V10H7A1,1 0 0,1 8,11V13A5,5 0 0,0 13,18H15V21L19,17L15,13V16H16.59L14.83,13.41M19,7L15,3V6H13.41L11,8.41L12.41,9.83L14.83,7.41L15,7.59V11H17V7.59L18.59,6L15,6V7H19M2,14H7A3,3 0 0,0 10,11L8.59,9.58A1,1 0 0,1 7,10H2V12H7V14H2Z"/></svg>
                 </button>
-                <button class="icon-btn" id="undo-btn" title="Undo">
-                    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.13,8 12.5,8Z"/></svg>
+                <button class="game-ctrl" id="btn-hint" title="Hint">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z"/></svg>
                 </button>
-                <button class="icon-btn" id="hint-btn" title="Hint">
-                    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z"/></svg>
+                <button class="game-ctrl" id="btn-undo" title="Undo">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12.5,8C9.85,8 7.45,9 5.6,10.6L2,7V16H11L7.38,12.38C8.77,11.22 10.54,10.5 12.5,10.5C16.04,10.5 19.05,12.81 20.1,16L22.47,15.22C21.08,11.03 17.13,8 12.5,8Z"/></svg>
                 </button>
-                <button class="icon-btn" id="pause-btn" title="Pause">
-                    <svg viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>
+                <button class="game-ctrl" id="btn-pause" title="Pause">
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M14,19H18V5H14M6,19H10V5H6V19Z"/></svg>
                 </button>
             </footer>
         </main>
-    </div>
 
-    <!-- Modals -->
-    <div id="modal-container" class="overlay">
-        <!-- Content injected via JS: Win, Pause, Confirm Shuffle -->
-    </div>
-
-    <!-- Image Selection / Upload Popup -->
-    <div id="upload-popup" class="overlay">
-        <div class="popup-box wooden">
-            <h3>Select Image</h3>
-            <div class="preset-images">
-                <div class="preset-thumb" data-id="1">1</div>
-                <div class="preset-thumb" data-id="2">2</div>
-                <div class="preset-thumb" data-id="3">3</div>
-                <div class="preset-thumb" data-id="4">4</div>
-                <div class="preset-thumb" data-id="5">5</div>
-            </div>
-            <label class="upload-area">
-                <input type="file" id="file-input" accept="image/*" hidden>
-                <svg viewBox="0 0 24 24" width="32" height="32"><path fill="currentColor" d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/></svg>
-                <span>Upload Custom Image</span>
-            </label>
-            <button class="close-btn">Close</button>
+        <!-- POPUP OVERLAY: WIN / PAUSE / CONFIRM -->
+        <div id="popup-overlay" class="overlay">
+            <!-- Dynamically populated -->
         </div>
+
     </div>
 
+    <!-- SCRIPTS -->
     <script src="js/engine.js"></script>
+    <script src="js/stats.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/pwa.js"></script>
+
 </body>
-</html>
+                        </html>
