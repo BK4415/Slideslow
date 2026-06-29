@@ -1,78 +1,72 @@
-/**
- * PREMIUM SLIDING ENGINE - CORE
- */
 class SlidingEngine {
     constructor() {
-        this.container = null;
         this.size = 4;
         this.tiles = [];
-        this.emptyPos = { x: 3, y: 3 };
-        this.mode = 'CLASSIC';
-        this.isPhoto = false;
-        this.imageSrc = null;
-        this.isLocked = false;
+        this.empty = { x: 3, y: 3 };
         this.moves = 0;
+        this.isLocked = false;
         this.startTime = null;
         this.timerInterval = null;
-        this.gameStarted = false;
-        
-        // Interaction
-        this.dragData = { active: false, axis: null, tiles: [], startPos: 0 };
     }
 
-    init(container, size, mode, style, image = null) {
+    init(container, size, mode, isPhoto, image) {
         this.container = container;
         this.size = size;
         this.mode = mode;
-        this.isPhoto = style === 'PHOTO';
-        this.imageSrc = image;
-        this.resetGame();
-        this.createBoard();
+        this.isPhoto = isPhoto;
+        this.image = image;
+        this.reset();
+        this.createTiles();
     }
 
-    resetGame() {
+    reset() {
         this.moves = 0;
-        this.gameStarted = false;
+        this.isLocked = false;
         this.startTime = null;
         clearInterval(this.timerInterval);
-        document.getElementById('move-count').innerText = '0';
-        document.getElementById('game-timer').innerText = '00:00';
+        this.empty = { x: this.size - 1, y: this.size - 1 };
     }
 
-    createBoard() {
+    createTiles() {
         this.container.innerHTML = '';
         this.tiles = [];
-        this.emptyPos = { x: this.size - 1, y: this.size - 1 };
-        
-        const count = this.size * this.size;
-        const layout = this.getModeLayout();
+        const layout = this.getLayout(this.mode);
+        const tileSize = 100 / this.size;
 
-        for (let i = 0; i < count - 1; i++) {
+        for (let i = 0; i < (this.size * this.size) - 1; i++) {
             const tile = {
                 id: i + 1,
-                x: layout[i].x,
-                y: layout[i].y,
-                targetX: layout[i].x,
-                targetY: layout[i].y,
-                correctX: layout[i].x,
-                correctY: layout[i].y,
-                el: this.createTileElement(i + 1, layout[i])
+                x: layout[i].x, y: layout[i].y,
+                cx: layout[i].x, cy: layout[i].y, // Correct positions
+                el: document.createElement('div')
             };
+            tile.el.className = 'tile';
+            tile.el.style.width = `calc(${tileSize}% - 4px)`;
+            tile.el.style.height = `calc(${tileSize}% - 4px)`;
+            tile.el.dataset.id = tile.id;
+            tile.el.innerHTML = `<span>${tile.id}</span>`;
+
+            if (this.isPhoto && this.image) {
+                tile.el.classList.add('photo-mode');
+                tile.el.style.backgroundImage = `url(${this.image})`;
+                tile.el.style.backgroundSize = `${this.size * 100}%`;
+                tile.el.style.backgroundPosition = `${(tile.cx / (this.size - 1)) * 100}% ${(tile.cy / (this.size - 1)) * 100}%`;
+            }
+
+            tile.el.addEventListener('pointerdown', () => this.handleTileClick(tile));
             this.tiles.push(tile);
             this.container.appendChild(tile.el);
         }
-        this.updateTilePositions(true);
+        this.updateVisuals(true);
     }
 
-    getModeLayout() {
+    getLayout(mode) {
         let coords = [];
         for (let y = 0; y < this.size; y++) {
             for (let x = 0; x < this.size; x++) coords.push({ x, y });
         }
-
-        if (this.mode === 'UPSIDE DOWN') return coords.slice(0, -1).reverse();
-        
-        if (this.mode === 'SNAKE') {
+        if (mode === 'UPSIDE DOWN') return coords.slice(0, -1).reverse();
+        if (mode === 'SNAKE') {
             let snake = [];
             for (let y = 0; y < this.size; y++) {
                 let row = [];
@@ -82,226 +76,96 @@ class SlidingEngine {
             }
             return snake.slice(0, -1);
         }
-
         return coords.slice(0, -1);
     }
 
-    createTileElement(id, pos) {
-        const el = document.createElement('div');
-        el.className = 'tile';
-        el.style.width = `calc(100% / ${this.size})`;
-        el.style.height = `calc(100% / ${this.size})`;
-        el.innerHTML = `<span>${id}</span>`;
-        el.dataset.id = id;
-
-        if (this.isPhoto && this.imageSrc) {
-            el.classList.add('photo-tile');
-            el.style.backgroundImage = `url(${this.imageSrc})`;
-            el.style.backgroundSize = `${this.size * 100}%`;
-            el.style.backgroundPosition = `${(pos.x / (this.size - 1)) * 100}% ${(pos.y / (this.size - 1)) * 100}%`;
-        }
-
-        el.addEventListener('pointerdown', (e) => this.handlePointerDown(e, id));
-        return el;
-    }
-
-    handlePointerDown(e, id) {
+    handleTileClick(tile) {
         if (this.isLocked) return;
-        const tile = this.tiles.find(t => t.id === id);
-        const canMoveX = tile.y === this.emptyPos.y;
-        const canMoveY = tile.x === this.emptyPos.x;
-
-        if (!canMoveX && !canMoveY) return;
-
-        this.dragData.active = true;
-        this.dragData.axis = canMoveX ? 'x' : 'y';
-        this.dragData.startPos = canMoveX ? e.clientX : e.clientY;
-        this.dragData.tiles = this.getAffectedTiles(tile);
-        
-        const moveFn = (me) => this.handlePointerMove(me);
-        const upFn = () => {
-            this.handlePointerUp();
-            window.removeEventListener('pointermove', moveFn);
-            window.removeEventListener('pointerup', upFn);
-        };
-
-        window.addEventListener('pointermove', moveFn);
-        window.addEventListener('pointerup', upFn);
+        const affected = this.getAffectedTiles(tile);
+        if (affected.length > 0) this.moveTiles(affected);
     }
 
-    getAffectedTiles(clickedTile) {
-        const affected = [];
-        if (this.dragData.axis === 'x') {
-            const min = Math.min(clickedTile.x, this.emptyPos.x);
-            const max = Math.max(clickedTile.x, this.emptyPos.x);
-            this.tiles.forEach(t => {
-                if (t.y === clickedTile.y && t.x >= min && t.x <= max) affected.push(t);
-            });
-        } else {
-            const min = Math.min(clickedTile.y, this.emptyPos.y);
-            const max = Math.max(clickedTile.y, this.emptyPos.y);
-            this.tiles.forEach(t => {
-                if (t.x === clickedTile.x && t.y >= min && t.y <= max) affected.push(t);
-            });
+    getAffectedTiles(tile) {
+        let affected = [];
+        if (tile.y === this.empty.y) {
+            const min = Math.min(tile.x, this.empty.x);
+            const max = Math.max(tile.x, this.empty.x);
+            affected = this.tiles.filter(t => t.y === tile.y && t.x >= min && t.x <= max);
+            affected.sort((a, b) => this.empty.x > tile.x ? b.x - a.x : a.x - b.x);
+        } else if (tile.x === this.empty.x) {
+            const min = Math.min(tile.y, this.empty.y);
+            const max = Math.max(tile.y, this.empty.y);
+            affected = this.tiles.filter(t => t.x === tile.x && t.y >= min && t.y <= max);
+            affected.sort((a, b) => this.empty.y > tile.y ? b.y - a.y : a.y - b.y);
         }
         return affected;
     }
 
-    handlePointerMove(e) {
-        if (!this.dragData.active) return;
-        const currentPos = this.dragData.axis === 'x' ? e.clientX : e.clientY;
-        const delta = currentPos - this.dragData.startPos;
+    moveTiles(tiles) {
+        if (!this.startTime && this.moves === 0) this.startTimer();
         
-        // Apply visual offset to affected tiles (clamped)
-        const containerSize = this.container.offsetWidth / this.size;
-        const clampedDelta = Math.max(-containerSize, Math.min(containerSize, delta));
-        
-        this.dragData.tiles.forEach(t => {
-            const offset = this.dragData.axis === 'x' ? `translateX(${clampedDelta}px)` : `translateY(${clampedDelta}px)`;
-            t.el.style.transform = `translate(${t.x * 100}%, ${t.y * 100}%) ${offset}`;
-        });
-    }
-
-    handlePointerUp() {
-        if (!this.dragData.active) return;
-        this.dragData.active = false;
-        
-        // For simplicity in this vanilla version, any significant move triggers the swap
-        // In a premium version, we calculate if it passed 50% threshold
-        this.executeMove(this.dragData.tiles);
-    }
-
-    executeMove(tiles) {
-        if (tiles.length === 0) return;
-        
-        if (!this.gameStarted) {
-            this.gameStarted = true;
-            this.startTimer();
-        }
-
-        const dir = this.dragData.axis === 'x' ? 
-            (tiles[0].x < this.emptyPos.x ? 1 : -1) : 
-            (tiles[0].y < this.emptyPos.y ? 1 : -1);
-
         tiles.forEach(t => {
-            if (this.dragData.axis === 'x') t.x += dir;
-            else t.y += dir;
+            const nextEmpty = { x: t.x, y: t.y };
+            t.x = this.empty.x;
+            t.y = this.empty.y;
+            this.empty = nextEmpty;
+            this.updateTileVisual(t);
         });
-
-        this.emptyPos.x -= (this.dragData.axis === 'x' ? dir * tiles.length : 0);
-        this.emptyPos.y -= (this.dragData.axis === 'y' ? dir * tiles.length : 0);
 
         this.moves++;
-        document.getElementById('move-count').innerText = this.moves;
-        this.updateTilePositions();
+        document.getElementById('game-moves').innerText = this.moves;
         this.checkWin();
     }
 
-    updateTilePositions(instant = false) {
+    updateTileVisual(t) {
+        t.el.style.transform = `translate(calc(${t.x * 100}% + 2px), calc(${t.y * 100}% + 2px))`;
+    }
+
+    updateVisuals(instant = false) {
         this.tiles.forEach(t => {
-            t.el.style.transition = instant ? 'none' : 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
-            t.el.style.transform = `translate(${t.x * 100}%, ${t.y * 100}%)`;
+            if (instant) t.el.style.transition = 'none';
+            else t.el.style.transition = 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)';
+            this.updateTileVisual(t);
         });
+    }
+
+    shuffle() {
+        this.isLocked = true;
+        let count = 0;
+        const max = this.size * 30;
+        const walk = () => {
+            const neighbors = this.tiles.filter(t => 
+                (Math.abs(t.x - this.empty.x) === 1 && t.y === this.empty.y) ||
+                (Math.abs(t.y - this.empty.y) === 1 && t.x === this.empty.x)
+            );
+            const random = neighbors[Math.floor(Math.random() * neighbors.length)];
+            this.moveTiles([random]);
+            count++;
+            if (count < max) requestAnimationFrame(walk);
+            else {
+                this.isLocked = false; this.moves = 0;
+                document.getElementById('game-moves').innerText = '0';
+            }
+        };
+        walk();
     }
 
     startTimer() {
         this.startTime = Date.now();
         this.timerInterval = setInterval(() => {
-            const now = Date.now();
-            const diff = Math.floor((now - this.startTime) / 1000);
+            const diff = Math.floor((Date.now() - this.startTime) / 1000);
             const m = Math.floor(diff / 60).toString().padStart(2, '0');
             const s = (diff % 60).toString().padStart(2, '0');
             document.getElementById('game-timer').innerText = `${m}:${s}`;
         }, 1000);
     }
 
-    shuffle() {
-        this.isLocked = true;
-        let count = 0;
-        const max = this.size * 20;
-        const interval = setInterval(() => {
-            const validTiles = this.tiles.filter(t => 
-                (Math.abs(t.x - this.emptyPos.x) === 1 && t.y === this.emptyPos.y) ||
-                (Math.abs(t.y - this.emptyPos.y) === 1 && t.x === this.emptyPos.x)
-            );
-            const randomTile = validTiles[Math.floor(Math.random() * validTiles.length)];
-            this.executeMove([randomTile]);
-            count++;
-            if (count >= max) {
-                clearInterval(interval);
-                this.isLocked = false;
-                this.resetGame(); // Reset moves after shuffle
-            }
-        }, 50);
-    }
-
     checkWin() {
-        const isWin = this.tiles.every(t => t.x === t.correctX && t.y === t.correctY);
-        if (isWin && this.gameStarted) {
-            this.gameStarted = false;
+        const win = this.tiles.every(t => t.x === t.cx && t.y === t.cy);
+        if (win && this.moves > 0) {
             clearInterval(this.timerInterval);
-            this.showWinPopup();
+            window.dispatchEvent(new CustomEvent('gameWin', { detail: { moves: this.moves, size: this.size }}));
         }
     }
-
-    showWinPopup() {
-        // Logic for triggering the Win Overlay in ui.js
-        window.dispatchEvent(new CustomEvent('gameWin', { detail: { 
-            moves: this.moves, 
-            time: document.getElementById('game-timer').innerText,
-            size: this.size
-        }}));
-    }
 }
-// Add to engine.js
-saveState() {
-    const state = {
-        size: this.size,
-        mode: this.mode,
-        style: this.isPhoto ? 'PHOTO' : 'NUMBER',
-        image: this.imageSrc,
-        moves: this.moves,
-        empty: this.emptyPos,
-        tiles: this.tiles.map(t => ({
-            id: t.id,
-            x: t.x,
-            y: t.y,
-            correctX: t.correctX,
-            correctY: t.correctY
-        })),
-        timer: document.getElementById('game-timer').innerText
-    };
-    localStorage.setItem('puzzle_save_game', JSON.stringify(state));
-}
-
-loadState() {
-    const saved = localStorage.getItem('puzzle_save_game');
-    if (!saved) return false;
-    
-    const data = JSON.parse(saved);
-    this.size = data.size;
-    this.mode = data.mode;
-    this.isPhoto = data.style === 'PHOTO';
-    this.imageSrc = data.image;
-    this.moves = data.moves;
-    this.emptyPos = data.empty;
-    
-    // Reconstruct Tiles
-    this.tiles = data.tiles.map(t => {
-        const el = this.createTileElement(t.id, {x: t.correctX, y: t.correctY});
-        return { ...t, el };
-    });
-    
-    this.renderFromLoaded();
-    return true;
-            }
-// Add to UI.js or Engine.js
-document.getElementById('photo-number-toggle').onclick = function() {
-    const tiles = document.querySelectorAll('.tile');
-    const isActive = tiles[0].classList.toggle('show-number');
-    
-    // Switch Icon state
-    this.style.color = isActive ? 'var(--accent)' : 'white';
-    
-    // Logic: The CSS .tile.show-number::after handles the visual display
-};
+const engine = new SlidingEngine();
