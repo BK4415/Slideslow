@@ -1,21 +1,13 @@
 /**
- * PWA REGISTRATION
+ * SERVICE WORKER REGISTRATION
  */
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-            .then(registration => {
-                console.log('SW registered: ', registration.scope);
-            })
-            .catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
-            });
+            .then(reg => console.log('Game Offline Ready'))
+            .catch(err => console.log('Offline Setup Failed', err));
     });
 }
 
-// Handle "Add to Home Screen" prompt
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-});
+// Security: Disable Long Press & Context Menu for Image protection
+document.addEventListener('contextmenu', e => e.preventDefault());
