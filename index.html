@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Wooden Slide Premium</title>
+    
+    <!-- PWA Meta -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a1a">
+    <link rel="manifest" href="manifest.json">
+    
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- 1. LOADING SCREEN -->
+    <div id="loading-screen" class="overlay active">
+        <div class="loading-content">
+            <div class="logo-placeholder"></div>
+            <h1 class="game-name">WOODEN SLIDE</h1>
+            <div class="loading-text">Loading...</div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN APP FRAME (Centering Mobile View on Desktop) -->
+    <div class="app-frame" id="app-frame">
+        
+        <!-- SIDE PANEL: INFORMATION (Left) -->
+        <aside id="panel-info" class="side-panel left">
+            <div class="panel-header">
+                <div class="panel-icon-svg" id="svg-info-header"></div>
+                <h2>Information</h2>
+                <button class="icon-btn close-btn" data-close="panel-info"></button>
+            </div>
+            <div class="panel-content scrollable">
+                <div class="menu-links">
+                    <a href="guide.html" class="menu-item">How To Play</a>
+                    <a href="about.html" class="menu-item">About Game</a>
+                    <a href="privacy.html" class="menu-item">Privacy Policy</a>
+                    <a href="terms.html" class="menu-item">Terms & Conditions</a>
+                </div>
+                <div class="credits">
+                    <p>Premium Sliding Engine v1.0</p>
+                    <p>© 2024 Offline Gaming</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- SIDE PANEL: DASHBOARD (Right) -->
+        <aside id="panel-dash" class="side-panel right">
+            <div class="panel-header">
+                <button class="icon-btn close-btn" data-close="panel-dash"></button>
+                <h2>Dashboard</h2>
+                <div class="panel-icon-svg" id="svg-dash-header"></div>
+            </div>
+            <div class="panel-content scrollable">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-label">Best Time</span>
+                        <span class="stat-value" id="stat-best-time">--:--</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Best Moves</span>
+                        <span class="stat-value" id="stat-best-moves">--</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Played</span>
+                        <span class="stat-value" id="stat-games-played">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Wins</span>
+                        <span class="stat-value" id="stat-completion">0%</span>
+                    </div>
+                </div>
+                <h3>Achievements</h3>
+                <div id="achievements-list" class="achievements-container"></div>
+            </div>
+        </aside>
+
+        <!-- VIEW: HOME -->
+        <main id="view-home" class="view active">
+            <nav class="top-nav">
+                <button class="icon-btn" id="nav-info-btn"></button>
+                <button class="icon-btn" id="nav-dash-btn"></button>
+            </nav>
+
+            <div class="home-hero">
+                <div class="logo-placeholder small"></div>
+                <h1 class="premium-text">WOODEN SLIDE</h1>
+            </div>
+
+            <section class="selection-area">
+                <!-- Live Preview Board -->
+                <div class="preview-container">
+                    <div id="preview-board" class="preview-grid"></div>
+                </div>
+
+                <!-- STYLE SELECTOR -->
+                <div class="selector-row">
+                    <button class="arrow-btn" id="prev-style"></button>
+                    <div class="selection-box">
+                        <span class="label">STYLE</span>
+                        <span class="value" id="current-style">NUMBER</span>
+                    </div>
+                    <button class="arrow-btn" id="next-style"></button>
+                </div>
+
+                <!-- SIZE SELECTOR -->
+                <div class="selector-row">
+                    <button class="arrow-btn" id="prev-size"></button>
+                    <div class="selection-box">
+                        <span class="label">BOARD</span>
+                        <span class="value" id="current-size">4 × 4</span>
+                    </div>
+                    <button class="arrow-btn" id="next-size"></button>
+                </div>
+
+                <!-- MODE SELECTOR -->
+                <div class="selector-row" id="mode-selector-container">
+                    <button class="arrow-btn" id="prev-mode"></button>
+                    <div class="selection-box">
+                        <span class="label">MODE</span>
+                        <span class="value" id="current-mode">CLASSIC</span>
+                    </div>
+                    <button class="arrow-btn" id="next-mode"></button>
+                </div>
+
+                <div id="photo-upload-wrap" class="hidden">
+                    <button class="upload-btn" id="trigger-upload">
+                        <span class="icon" id="svg-upload-icon"></span>
+                        UPLOAD IMAGE
+                    </button>
+                    <input type="file" id="image-input" accept="image/*" hidden>
+                </div>
+            </section>
+
+            <footer class="home-actions">
+                <button class="main-play-btn" id="start-game-btn">
+                    <span id="svg-play-icon"></span> PLAY
+                </button>
+                
+                <div id="resume-container" class="resume-section hidden">
+                    <button id="resume-game-btn">RESUME GAME</button>
+                    <div class="resume-meta" id="resume-info">Last: 4x4 Photo Classic</div>
+                </div>
+            </footer>
+        </main>
+
+        <!-- VIEW: GAME -->
+        <main id="view-game" class="view">
+            <header class="game-hud">
+                <div class="hud-item">
+                    <span class="hud-icon" id="svg-moves-icon"></span>
+                    <span id="game-moves">0</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-icon" id="svg-timer-icon"></span>
+                    <span id="game-timer">00:00</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label" id="game-board-label">4x4</span>
+                    <button class="icon-btn-sm hidden" id="photo-toggle-nums"></button>
+                </div>
+            </header>
+
+            <div class="game-board-outer">
+                <div id="game-board" class="game-grid"></div>
+            </div>
+
+            <footer class="game-controls">
+                <button class="ctrl-btn" id="btn-shuffle" title="Shuffle"></button>
+                <button class="ctrl-btn" id="btn-hint" title="Hint"></button>
+                <button class="ctrl-btn" id="btn-undo" title="Undo"></button>
+                <button class="ctrl-btn" id="btn-redo" title="Redo"></button>
+                <button class="ctrl-btn" id="btn-pause" title="Pause"></button>
+            </footer>
+        </main>
+
+        <!-- POPUP: WIN / PAUSE / CONFIRM -->
+        <div id="modal-overlay" class="overlay">
+            <div id="modal-content"></div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/engine.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/pwa.js"></script>
+</body>
+</html>
