@@ -1,77 +1,117 @@
 /**
- * STATS MANAGER - TRACKS RECORDS & PERSISTENCE
+ * STATISTICS & RECORD MANAGER
  */
-const StatsManager = {
-    // Initial Data Structure
+const Stats = {
     data: {
-        gamesPlayed: 0,
-        completionRate: 0,
-        bestTimes: {}, // e.g., "4x4-CLASSIC": 120 (seconds)
+        bestTimes: {},   // Key format: "4x4-CLASSIC"
         bestMoves: {},
-        currentStreak: 0,
-        longestStreak: 0,
-        favMode: "Classic",
-        lastPlayed: null
+        gamesPlayed: 0,
+        totalWins: 0,
+        achievements: []
     },
 
     init() {
-        const saved = localStorage.getItem('slide_puzzle_stats');
+        const saved = localStorage.getItem('wood_slide_stats');
         if (saved) {
             this.data = JSON.parse(saved);
         }
-        this.updateDashboardUI();
+        this.updateDashboard();
     },
 
-    saveRecord(size, mode, moves, timeSeconds) {
+    saveWin(size, mode, moves, timeStr) {
         const key = `${size}x${size}-${mode}`;
         
+        // Convert time string "MM:SS" to total seconds
+        const parts = timeStr.split(':');
+        const seconds = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+
         // Update Best Moves
         if (!this.data.bestMoves[key] || moves < this.data.bestMoves[key]) {
             this.data.bestMoves[key] = moves;
         }
 
         // Update Best Time
-        if (!this.data.bestTimes[key] || timeSeconds < this.data.bestTimes[key]) {
-            this.data.bestTimes[key] = timeSeconds;
+        if (!this.data.bestTimes[key] || seconds < this.data.bestTimes[key]) {
+            this.data.bestTimes[key] = seconds;
         }
 
         this.data.gamesPlayed++;
-        this.data.lastPlayed = { size, mode, moves, timeSeconds, date: Date.now() };
+        this.data.totalWins++;
         
-        localStorage.setItem('slide_puzzle_stats', JSON.stringify(this.data));
-        this.updateDashboardUI();
+        // Save to LocalStorage
+        localStorage.setItem('wood_slide_stats', JSON.stringify(this.data));
+        
+        // Save "Resume" info as the "Last Played" record
+        localStorage.setItem('wood_slide_last', JSON.stringify({
+            size, mode, moves, time: timeStr, timestamp: Date.now()
+        }));
+
+        this.updateDashboard();
     },
 
-    updateDashboardUI() {
-        document.getElementById('stat-played').innerText = this.data.gamesPlayed;
-        
-        // Find overall best time across any 4x4 classic
-        const bestTime = this.data.bestTimes["4x4-CLASSIC"];
-        if (bestTime) {
-            const m = Math.floor(bestTime / 60).toString().padStart(2, '0');
-            const s = (bestTime % 60).toString().padStart(2, '0');
-            document.getElementById('stat-best-time').innerText = `${m}:${s}`;
+    updateDashboard() {
+        const bestTimeEl = document.getElementById('stat-best-time');
+        const bestMovesEl = document.getElementById('stat-best-moves');
+        const playedEl = document.getElementById('stat-games-played');
+        const winRateEl = document.getElementById('stat-completion');
+
+        // Display overall stats in Dashboard Panel
+        playedEl.innerText = this.data.gamesPlayed;
+        winRateEl.innerText = this.data.gamesPlayed > 0 ? 
+            Math.round((this.data.totalWins / this.data.gamesPlayed) * 100) + "%" : "0%";
+
+        // Find the absolute best time/moves recorded across all categories
+        const times = Object.values(this.data.bestTimes);
+        if (times.length > 0) {
+            const minTime = Math.min(...times);
+            const m = Math.floor(minTime / 60).toString().padStart(2, '0');
+            const s = (minTime % 60).toString().padStart(2, '0');
+            bestTimeEl.innerText = `${m}:${s}`;
         }
-        
-        // Update Achievements (Simple logic)
-        const achContainer = document.getElementById('achievements-list');
-        achContainer.innerHTML = '';
-        if (this.data.gamesPlayed >= 1) this.addAchievement('First Slide', 'Completed your first game.');
-        if (this.data.gamesPlayed >= 10) this.addAchievement('Puzzle Master', 'Completed 10 games.');
+
+        const moves = Object.values(this.data.bestMoves);
+        if (moves.length > 0) {
+            bestMovesEl.innerText = Math.min(...moves);
+        }
+
+        this.checkAchievements();
     },
 
-    addAchievement(title, desc) {
-        const achContainer = document.getElementById('achievements-list');
-        achContainer.innerHTML += `
-            <div class="ach-item">
-                <div class="ach-icon">${ICONS.star}</div>
-                <div class="ach-text">
-                    <strong>${title}</strong>
-                    <span>${desc}</span>
-                </div>
-            </div>
-        `;
+    checkAchievements() {
+        const list = document.getElementById('achievements-list');
+        list.innerHTML = '';
+        
+        const possible = [
+            { id: 'first', title: 'Novice', req: this.data.totalWins >= 1, desc: 'First puzzle solved' },
+            { id: 'pro', title: 'Puzzle Pro', req: this.data.totalWins >= 10, desc: '10 puzzles solved' },
+            { id: 'master', title: 'Grandmaster', req: this.data.totalWins >= 50, desc: '50 puzzles solved' }
+        ];
+
+        possible.forEach(ach => {
+            if (ach.req) {
+                list.innerHTML += `
+                    <div class="ach-card">
+                        <div class="ach-icon">${UI.icons.star}</div>
+                        <div class="ach-info">
+                            <strong>${ach.title}</strong>
+                            <span>${ach.desc}</span>
+                        </div>
+                    </div>
+                `;
+            }
+        });
     }
 };
 
-StatsManager.init();
+// Initialize on load
+Stats.init();
+
+// Resume logic check
+window.addEventListener('load', () => {
+    const last = localStorage.getItem('wood_slide_last');
+    if (last) {
+        const data = JSON.parse(last);
+        document.getElementById('resume-container').classList.remove('hidden');
+        document.getElementById('resume-info').innerText = `Last: ${data.size}x${data.size} ${data.mode}`;
+    }
+});
